@@ -88,36 +88,8 @@ button:hover{border-color:#64748b}
 .table-scroll{max-height:500px}
 .lower{grid-template-columns:minmax(260px,1.05fr) minmax(240px,.9fr) minmax(230px,.8fr) minmax(300px,1.18fr);gap:16px;align-items:stretch}
 .mini{min-height:270px;overflow:hidden}
-.bars{
-  height:230px;
-  padding:18px 18px 14px;
-  display:grid !important;
-  grid-template-columns:repeat(auto-fit,minmax(56px,1fr));
-  align-items:end;
-  gap:14px;
-  overflow:hidden;
-}
-.bar-item{
-  min-width:0;
-  display:grid;
-  grid-template-rows:1fr auto;
-  align-items:end;
-  justify-items:center;
-  text-align:center;
-}
-.bar{
-  width:42px;
-  max-width:70%;
-}
-.bar-item > div:last-child{
-  width:100%;
-  max-width:78px;
-  min-height:30px;
-  line-height:1.1;
-  white-space:normal;
-  overflow-wrap:anywhere;
-  font-size:10px;
-}
+.bars{height:230px;padding:18px 18px 14px}
+.bar{width:42px}
 .section-title{letter-spacing:-.01em}
 @media(max-width:1180px){.grid-kpi{grid-template-columns:repeat(3,1fr)}.stage-wrap,.lower{grid-template-columns:1fr}.funnel{height:auto}.chart-body{justify-content:flex-start}.filters{grid-template-columns:1fr 1fr}}
 @media(max-width:720px){.grid-kpi,.filters{grid-template-columns:1fr}.header{display:block}.stage-wrap{gap:14px}}
@@ -166,6 +138,98 @@ button:hover{border-color:#64748b}
 /* Keep all totals based on valid programs, not blank spreadsheet rows */
 @media(max-width:1420px){.stage-wrap{grid-template-columns:1fr !important}.chart-body{grid-template-columns:180px minmax(200px,1fr) !important;justify-content:start !important}.donut{width:180px !important;height:180px !important}}
 @media(max-width:720px){.chart-body{grid-template-columns:1fr !important}.legend div{grid-template-columns:16px minmax(0,1fr) auto}.donut{margin:0 auto}.overview-flow-grid,.overview-flow-grid.two{grid-template-columns:1fr !important}}
+
+
+/* --- Bottom summary cards fix: prevent right-side clipping and make funding readable --- */
+.lower{
+  grid-template-columns:minmax(300px,1.08fr) minmax(300px,.92fr) minmax(250px,.78fr) minmax(320px,1.18fr) !important;
+  align-items:stretch !important;
+}
+.mini{
+  overflow:hidden !important;
+  min-height:300px !important;
+}
+.mini .body{
+  padding:14px 16px 18px !important;
+  overflow-x:auto !important;
+  overflow-y:hidden !important;
+}
+.mini .body::-webkit-scrollbar{height:8px}
+.mini .body::-webkit-scrollbar-thumb{background:rgba(148,163,184,.28);border-radius:999px}
+.mini table{
+  width:100% !important;
+  min-width:0 !important;
+  table-layout:fixed !important;
+}
+.mini th,.mini td{
+  overflow:hidden !important;
+  text-overflow:ellipsis !important;
+  white-space:nowrap !important;
+}
+#priorityBox table th:nth-child(1),#priorityBox table td:nth-child(1){width:82px}
+#priorityBox table th:nth-child(2),#priorityBox table td:nth-child(2){width:auto}
+#priorityBox table th:nth-child(3),#priorityBox table td:nth-child(3){width:72px}
+#milestonesBox table th:nth-child(1),#milestonesBox table td:nth-child(1){width:92px}
+#milestonesBox table th:nth-child(2),#milestonesBox table td:nth-child(2){width:auto}
+#priorityBox b{
+  display:block;
+  margin:0 0 7px;
+  color:#f8fafc;
+}
+#priorityBox br{display:none}
+#priorityBox table{margin:0 0 14px}
+#fundingBars.bars{
+  height:auto !important;
+  min-height:230px !important;
+  padding:16px 18px 18px !important;
+  display:grid !important;
+  grid-template-columns:1fr !important;
+  align-content:start !important;
+  gap:12px !important;
+}
+.funding-row{
+  display:grid;
+  grid-template-columns:minmax(92px,128px) 1fr 34px;
+  gap:12px;
+  align-items:center;
+  min-width:0;
+}
+.funding-label{
+  color:#bdd0e8;
+  font-size:12px;
+  font-weight:850;
+  line-height:1.15;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:normal;
+}
+.funding-track{
+  height:12px;
+  background:rgba(125,224,255,.13);
+  border-radius:999px;
+  overflow:hidden;
+  min-width:0;
+}
+.funding-fill{
+  height:100%;
+  background:var(--green);
+  border-radius:999px;
+}
+.funding-value{
+  color:#dbeafe;
+  text-align:right;
+  font-size:12px;
+  font-weight:900;
+}
+@media(max-width:1180px){
+  .lower{grid-template-columns:1fr !important}
+  .mini{min-height:auto !important}
+  #fundingBars.bars{min-height:0 !important}
+}
+@media(max-width:520px){
+  .funding-row{grid-template-columns:86px 1fr 28px;gap:8px}
+  .funding-label{font-size:11px}
+}
 
 </style>
 </head>
@@ -304,13 +368,18 @@ function renderOverviewFlow(arr){
 function renderLower(arr){
   const hi=arr.filter(r=>r.Priority==='High');
   const groups=countBy(hi,'Category');
-  priorityBox.innerHTML=Object.keys(groups).map(cat=>`<b>${esc(cat)}</b><table><thead><tr><th>ID</th><th>Program</th><th>Gene</th></tr></thead><tbody>${hi.filter(r=>r.Category===cat).slice(0,4).map(r=>`<tr><td>${r.Program_ID}</td><td>${esc(r.Program_Name)}</td><td>${esc(r.Gene)}</td></tr>`).join('')}</tbody></table><br>`).join('')||'<p>No high-priority programs in this view.</p>';
+  priorityBox.innerHTML=Object.keys(groups).map(cat=>`<b>${esc(cat)}</b><table><thead><tr><th>ID</th><th>Program</th><th>Gene</th></tr></thead><tbody>${hi.filter(r=>r.Category===cat).slice(0,4).map(r=>`<tr><td title="${esc(r.Program_ID)}">${esc(r.Program_ID)}</td><td title="${esc(r.Program_Name)}">${esc(r.Program_Name)}</td><td title="${esc(r.Gene)}">${esc(r.Gene)}</td></tr>`).join('')}</tbody></table>`).join('')||'<p>No high-priority programs in this view.</p>';
+
   const ms=arr.filter(r=>r.Next_Milestone && r.Next_Milestone!=='None' && r.Next_Milestone!=='TBC').slice(0,6);
-  milestonesBox.innerHTML=`<table><thead><tr><th>Program ID</th><th>Next Milestone</th></tr></thead><tbody>${ms.map(r=>`<tr><td>${r.Program_ID}</td><td>${esc(r.Next_Milestone)}</td></tr>`).join('')}</tbody></table>`;
+  milestonesBox.innerHTML=`<table><thead><tr><th>Program ID</th><th>Next Milestone</th></tr></thead><tbody>${ms.map(r=>`<tr><td title="${esc(r.Program_ID)}">${esc(r.Program_ID)}</td><td title="${esc(r.Next_Milestone)}">${esc(r.Next_Milestone)}</td></tr>`).join('')}</tbody></table>`;
+
   const one=arr.filter(r=>r.Is_One_of_N==='Yes');
   oneNBox.innerHTML=`<p class="summary-line">Tagged 1-to-N Programs: ${one.length}</p><p class="summary-line">Active 1-to-N Cases: ${one.filter(r=>r.One_of_N_Status==='Active').length}</p><p class="summary-line">TBC / Configuring: ${one.filter(r=>['TBD','TBC'].includes(r.One_of_N_Status)).length}</p><p class="summary-line">No 1-to-N Status Listed: ${one.filter(r=>!r.One_of_N_Status).length}</p>`;
-  const fc=countBy(arr,'Funding'), max=Math.max(...Object.values(fc),1);
-  fundingBars.innerHTML=Object.entries(fc).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="bar-item"><div class="bar" style="height:${Math.max(8,v/max*150)}px">${v}</div><div>${esc(k)}</div></div>`).join('');
+
+  const fc=countBy(arr,'Funding');
+  const entries=Object.entries(fc).sort((a,b)=>b[1]-a[1]);
+  const max=Math.max(...entries.map(([,v])=>v),1);
+  fundingBars.innerHTML=entries.map(([k,v])=>`<div class="funding-row"><div class="funding-label" title="${esc(k)}">${esc(k)}</div><div class="funding-track"><div class="funding-fill" style="width:${Math.max(5,Math.round(v/max*100))}%"></div></div><div class="funding-value">${v}</div></div>`).join('');
 }
 function render(){
   filtered=getFiltered(); renderKpis(filtered); renderFunnel(filtered); renderCharts(filtered); renderOverviewFlow(filtered); renderTable(filtered); renderLower(filtered);
